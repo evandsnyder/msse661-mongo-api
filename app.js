@@ -4,7 +4,11 @@ const logger = require('morgan');
 const bodyParser = require('body-parser');
 
 const recipeRoutes = require('./routes/recipes.routes');
-const middleware = require('./middleware/errors.middleware');
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+
+const errorMiddleware = require('./middleware/errors.middleware');
+const authMiddleware = require('./middleware/auth.middleware');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,11 +25,17 @@ db.once('open', () => {
   console.log('Database Connection Successful');
 });
 
+app.use(cors());
+
 app.use(logger(logLevel));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-app.use('/recipe', recipeRoutes);
-app.use(middleware.error404);
-app.use(middleware.error500);
-app.listen(port, middleware.logger(port));
+app.use('/api/recipe', recipeRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/auth', authRoutes);
+
+
+app.use(errorMiddleware.error404);
+app.use(errorMiddleware.error500);
+app.listen(port, errorMiddleware.logger(port));
