@@ -6,10 +6,11 @@ const jwtconfig = require('../jwt-config');
 const { request } = require('express');
 const { response } = require('express');
 
-exports.registerUser = function (request, response) {
+exports.registerUser = async function (request, response) {
 
     // Ensure user does not exist first...
-    if (await User.findOne({ username: request.body.username }).exec() !== null) {
+    const t = await User.findOne({ username: request.body.username });
+    if (t !== null) {
         response.status(400).send({ msg: "User with that name already exists" });
     }
 
@@ -22,16 +23,20 @@ exports.registerUser = function (request, response) {
     });
 
     newUser.save((err, data) => {
-        if (err) response.satus(500).send({ msg: "Could not register user. please try again later" });
+        if (err){
+            console.log(err);
+            response.status(500).send({ msg: "Could not register user. please try again later" });
+        }
         response.send(data);
     })
 };
 
-exports.login = function (req, res) {
+exports.login = async function (request, res) {
     let user = await User.findOne({ username: request.body.username }).exec();
 
     if (user === null) {
-        response.status(400).send({ msg: "Invalid username or password" });
+        res.status(400).send({ msg: "Invalid username or password" });
+        return;
     }
 
     bcrypt.compare(request.body.password, user.password)
@@ -48,7 +53,7 @@ exports.login = function (req, res) {
         .catch(console.log);
 };
 
-exports.updateUser = function (req, res) {
+exports.updateUser = function (request, response) {
     User.findByIdAndUpdate(request.user.id, request.body, (err, data) => {
         if (err) {
             response.status(400).send({ msg: 'Failed to update user' });
