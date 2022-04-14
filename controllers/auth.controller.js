@@ -12,6 +12,7 @@ exports.registerUser = async function (request, response) {
     const t = await User.findOne({ username: request.body.username });
     if (t !== null) {
         response.status(400).send({ msg: "User with that name already exists" });
+        return;
     }
 
     const passwordHash = bcrypt.hashSync(request.body.password);
@@ -26,6 +27,7 @@ exports.registerUser = async function (request, response) {
         if (err){
             console.log(err);
             response.status(500).send({ msg: "Could not register user. please try again later" });
+            return;
         }
         response.send(data);
     })
@@ -47,8 +49,8 @@ exports.login = async function (request, res) {
 
             const token = jwt.sign({ id: user._id }, jwtconfig.secret);
             res
-                .header('auth-token', token)
-                .send({ auth: true, msg: 'Logged in!' });
+                .header('access_token', token)
+                .send({ auth: true, access_token: token, refresh_token: token});
         })
         .catch(console.log);
 };
